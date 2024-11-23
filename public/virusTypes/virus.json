@@ -1,0 +1,65 @@
+{
+    "virus": {
+        "system-overload" : false,
+        "network-overload" : false,
+        "user-modification" : false,
+        "event-log-modification" : true,
+        "virus-activation" : true,
+        "admin-privilege-escalation" : false,
+        "file-modification" : true
+    },
+    "warm": {
+        "system-overload" : true,
+        "network-overload" : true,
+        "user-modification" : false,
+        "event-log-modification" : false,
+        "virus-activation" : false,
+        "admin-privilege-escalation" : false,
+        "file-modification" : false
+    },
+    "trojan": {
+        "system-overload" : false,
+        "network-overload" : false,
+        "user-modification" : false,
+        "event-log-modification" : true,
+        "virus-activation" : false,
+        "admin-privilege-escalation" : false,
+        "file-modification" : false
+    },
+    "ransomware": {
+        "system-overload" : false,
+        "network-overload" : false,
+        "user-modification" : false,
+        "event-log-modification" : true,
+        "virus-activation" : false,
+        "admin-privilege-escalation" : false,
+        "file-modification" : true
+    },
+    "spyware": {
+        "system-overload" : false,
+        "network-overload" : false,
+        "user-modification" : false,
+        "event-log-modification" : true,
+        "virus-activation" : false,
+        "admin-privilege-escalation" : false,
+        "file-modification" : true
+    },
+    "rootkit": {
+        "system-overload" : false,
+        "network-overload" : false,
+        "user-modification" : false,
+        "event-log-modification" : true,
+        "virus-activation" : false,
+        "admin-privilege-escalation" : true,
+        "file-modification" : false
+    },
+    "botnet": {
+        "system-overload" : false,
+        "network-overload" : true,
+        "user-modification" : false,
+        "event-log-modification" : false,
+        "virus-activation" : false,
+        "admin-privilege-escalation" : false,
+        "file-modification" : false
+    }
+}

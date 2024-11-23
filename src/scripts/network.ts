@@ -7,10 +7,64 @@ interface Packet {
     content: string;
 }
 
-class NetworkSystem {
+export class NetworkSystem {
     private packets: Packet[] = [];
 
-    constructor(private dummyData: string[]) {}
+    dummygoodData: string[] = [
+        "User login attempt from 172.16.0.100",
+        "File upload successful: backup_20241124.zip",
+        "Error: Connection timeout on port 8080",
+        "New device connected: iPhone_12",
+        "Packet loss detected: 2% on eth0",
+        "Firewall rule updated: Allow port 443",
+        "DNS query for example.com resolved",
+        "Malicious traffic blocked from 203.0.113.42",
+        "Authentication failed: max retries reached",
+        "System reboot scheduled at 03:00 UTC",
+        "Backup process completed successfully",
+        "SSL certificate renewed: domain.com",
+        "Database optimization completed",
+        "System update installed: security patch",
+        "Network bandwidth usage: 60%",
+        "Cache cleared: 2.3GB freed",
+        "User session timeout: admin_user",
+        "Email server responding normally",
+        "Load balancer health check: OK",
+        "Memory usage at 45% threshold",
+        "Disk cleanup completed: 500MB recovered",
+        "Service restart: Apache server",
+        "User password updated successfully",
+        "HTTPS connection established",
+        "Antivirus definitions updated",
+        "Backup verification completed",
+        "System temperature: 42°C normal",
+        "RAM usage optimization complete",
+        "Network latency: 15ms average",
+        "CPU usage normalized to 30%"
+     ];
+    
+    dummybadData: string[] = [
+        "Suspicious port scan detected from 192.168.1.100",
+        "Multiple failed SSH login attempts",
+        "Unauthorized root access attempt",
+        "Buffer overflow attack detected",
+        "SQL injection attempt blocked",
+        "Unusual outbound data transfer: 2.5GB",
+        "Malware signature detected: trojan.win32",
+        "Brute force attack on admin panel",
+        "Suspicious process accessing system files",
+        "DDoS attack pattern identified",
+        "Unauthorized encryption activity",
+        "Memory manipulation detected",
+        "Suspicious registry modifications",
+        "Command injection attempt",
+        "Unauthorized API access attempt",
+        "Backdoor connection detected: port 4444",
+        "Cross-site scripting attempt",
+        "Ransomware activity suspected",
+        "Keylogger behavior detected",
+        "Data exfiltration attempt blocked"
+    ];
 
     // 현재 시간을 반환하는 함수
     private getTime(): string {
@@ -24,15 +78,21 @@ class NetworkSystem {
     }
 
     // 랜덤 패킷 추가 함수
-    public addRandomPacket(): void {
+    public addRandomPacket(isGood: boolean): void {
         const packet: Packet = {
             timestamp: this.getTime(),
             source_ip: `192.168.1.${this.getRandomIndex(255) + 1}`, // 랜덤 IP 생성
             destination_ip: `192.168.1.${this.getRandomIndex(255) + 1}`,
-            content: this.dummyData[this.getRandomIndex(this.dummyData.length)] // 무작위 dummy 데이터
+            content: isGood ? this.dummygoodData[this.getRandomIndex(this.dummygoodData.length)] : this.dummybadData[this.getRandomIndex(this.dummybadData.length)] // 무작위 dummy 데이터
         };
 
         this.packets.push(packet);
+    }
+    
+    public addRandomPackets(count: number, isGood: boolean): void{
+        for(let i = 0 ; i <= count ; i++){
+            this.addRandomPacket(isGood);
+        }
     }
 
     // 특정 패킷 추가 함수
@@ -48,31 +108,14 @@ class NetworkSystem {
     }
 
     // 패킷들을 문자열 배열로 반환하는 함수
-    public getPackets(): string[] {
-        return this.packets.map(packet => 
-            `[${packet.timestamp}] ${packet.source_ip} -> ${packet.destination_ip}: ${packet.content}`
+    public getPackets(): string {
+        let packets:string = "Timestamp\tSource IP\tDest IP\tContent\n";
+        this.packets.map(packet => 
+            packets += `[${packet.timestamp}] | ${packet.source_ip} -> ${packet.destination_ip} | ${packet.content}\n`
         );
+
+        return packets
     }
-}
 
-// Dummy 데이터 배열
-const dummyData: string[] = [
-    "User login attempt",
-    "File upload successful",
-    "Error: Connection timeout",
-    "New device connected",
-    "Packet loss detected",
-    "Firewall rule updated",
-    "DNS query for example.com",
-    "Malicious traffic blocked",
-    "Authentication failed",
-    "System reboot scheduled"
-];
-
-// 네트워크 시스템 인스턴스 생성
-const networkSystem = new NetworkSystem(dummyData);
-
-// 5개의 랜덤 패킷 추가
-for (let i = 0; i < 5; i++) {
-    networkSystem.addRandomPacket();
+    
 }

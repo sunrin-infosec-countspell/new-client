@@ -10,7 +10,7 @@
 [    0.000000] kernel: BIOS-e820: [mem 0x0000000000100000-0x00000000001fffff] ACPI data
 [    0.000000] kernel: BIOS-e820: [mem 0x0000000000200000-0x00000000f7ffffff] usable
 [    0.000000] kernel: BIOS-e820: [mem 0x0000000100000000-0x00000003fc1fffff] usable
-[    0.000000] kernel: NX (Execute Disable) protection: active
+[    0.000000] kernel: NX (Execute Disable) protection: active                                                                                                                                                  
 [    0.000000] kernel: DMI not present or invalid.
 [    0.547367] kernel: scsi host0: storvsc_host_t
 [    0.547687] kernel: PPP Deflate Compression module registered

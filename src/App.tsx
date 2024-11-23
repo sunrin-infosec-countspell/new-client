@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Client, Socket as NakamaSocket } from '@heroiclabs/nakama-js'
+import { NetworkSystem } from './scripts/network'
+import { GameFileSystem } from './scripts/file-system'
 import './css/effect.css'
 import './css/terminal.css'
 
@@ -8,8 +10,12 @@ function App() {
   const serverAddr = 'localhost'
   const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+  let matchId = "";
+
   const [client] = useState<Client>(new Client(serverKey, serverAddr));
   const [socket] = useState<NakamaSocket>(client.createSocket());
+  const [Network] = useState<NetworkSystem>(new NetworkSystem());
+  const [FileSystem] = useState<GameFileSystem>(new GameFileSystem());
   
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
@@ -17,9 +23,14 @@ function App() {
 
   const [command, setCommand] = useState<string[]>([]);
   const [currentPath, setCurrentPath] = useState<string>('game@server:~$');
+  const terminalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const connectToServer = async () => {
+      if(isConnected){
+        return
+      }
+
       try {
         const deviceid = 'mydeviceid'
         const create = true
@@ -49,6 +60,12 @@ function App() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+    }
+  }, [command]); 
 
   const showMessage = async (path: string) => {
     try {
@@ -109,16 +126,30 @@ function App() {
       }
     } else {
       switch (slicedCommand) {
+        case 'pwd':
+          setCommand(prev => [...prev, FileSystem.CurrentDirectory()]);
+          break;
         case 'ls':
+          setCommand(prev => [...prev, FileSystem.ListDirectory()]);
           break;
         case 'cd':
+          if(slicedCommand[1] === '..'){
+            FileSystem.StepOut();
+            setCurrentPath("game@veritas:"+FileSystem.CurrentDirectory()+"$");
+            break;
+          }
+          FileSystem.StepInto(slicedCommand[1]);
+          setCurrentPath("game@veritas:"+FileSystem.CurrentDirectory()+"$");
           break;
-        case 'touch':
-          break;
-        case 'mkdir':
+        case 'network':
+            setCommand(prev => [...prev, 'Fetching network packets...']);
+            setCommand(prev => [...prev, Network.getPackets()]);
           break;
         case "clear":
           clearCommand();
+          break;
+        case "exit":
+          matchExit();
           break;
         default:
           setCommand(prev => [...prev, 'command not found']);
@@ -127,6 +158,10 @@ function App() {
 
     }
     
+  }
+
+  const matchExit = () => {
+    socket.leaveMatch(matchId);
   }
 
   const startMatchmaking = async () => {
@@ -147,10 +182,12 @@ function App() {
     socket.onmatchmakermatched = async (matched) => {
       console.log("Matchmaker matched:", matched);
       setIsMatched(true);
+      setIsDisabled(false);
       const matchedPlayers = matched.users.map(user => user.presence.user_id);
       console.log("Matched players:", matchedPlayers);
 
       const match = await socket.joinMatch(null, matched.token);
+      matchId = match.match_id;
       console.log("Successfully joined match:", match);
       
       setCommand(prev => [...prev, 'Match found! Starting program...']);
@@ -158,6 +195,9 @@ function App() {
       clearCommand();
       showMessage("welcomeGameMessage");
       pathChange('game@veritas:~$');
+
+      // system init
+      Network.addRandomPackets(20, true)
 
       setIsDisabled(false); 
 
@@ -171,14 +211,12 @@ function App() {
     <>
       <div className='wrapMonitor'>
         <div className='monitor'>
-          <div className='terminal'>
+          <div className='terminal' ref={terminalRef}>
             {command.map((item, index) => (
               <div key={index} className='command-line'>
                 {item.startsWith('game@') ? (
-                  // 사용자 입력 명령어인 경우 (프롬프트로 시작하는 경우)
                   <span>{item}</span>
                 ) : (
-                  // 시스템 메시지인 경우
                   <span className='system-message'>{item}</span>
                 )}
               </div>
