@@ -73,7 +73,7 @@ function App() {
   const handleInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !isDisabled) { 
       const newCommand = (e.target as HTMLInputElement).value;
-      setCommand([...command, newCommand]);
+      setCommand(prev => [...prev, `${currentPath} ${newCommand}`]);
       checkCommand(newCommand);
       (e.target as HTMLInputElement).value = '';
     }
@@ -116,6 +116,9 @@ function App() {
         case 'touch':
           break;
         case 'mkdir':
+          break;
+        case "clear":
+          clearCommand();
           break;
         default:
           setCommand(prev => [...prev, 'command not found']);
@@ -171,8 +174,13 @@ function App() {
           <div className='terminal'>
             {command.map((item, index) => (
               <div key={index} className='command-line'>
-                <span className='prompt'>{currentPath}</span>
-                <span>{item}</span>
+                {item.startsWith('game@') ? (
+                  // 사용자 입력 명령어인 경우 (프롬프트로 시작하는 경우)
+                  <span>{item}</span>
+                ) : (
+                  // 시스템 메시지인 경우
+                  <span className='system-message'>{item}</span>
+                )}
               </div>
             ))}
           </div>
