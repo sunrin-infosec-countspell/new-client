@@ -4,7 +4,7 @@ interface User {
     authority: string;
   }
   
-  class UserManager {
+  export class UserManager {
     private users: User[] = [];
     private log: string[][] = [];
   
@@ -61,23 +61,3 @@ interface User {
       return this.log;
     }
   }
-  
-  const userManager = new UserManager();
-  
-  // 사용자 생성
-  userManager.createUser("Alice", "Admin", "rwx");
-  userManager.createUser("Bob", "User", "r-x");
-  
-  // 사용자 읽기
-  userManager.readUser("Alice");
-  userManager.readAllUsers();
-  
-  // 사용자 업데이트
-  userManager.updateUser("Alice", { group: "SuperAdmin" });
-  
-  // 사용자 삭제
-  userManager.deleteUser("Bob");
-  userManager.readAllUsers();
-  
-  // 로그 출력
-  console.log(userManager.getLog());

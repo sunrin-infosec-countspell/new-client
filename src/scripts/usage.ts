@@ -1,4 +1,4 @@
-class SystemUsage {
+export class SystemUsage {
     private usage: number = 0;
   
     constructor() {}
@@ -15,17 +15,4 @@ class SystemUsage {
     public getUsage(): number {
       return this.usage;
     }
-  }
-  
-  const systemUsage = new SystemUsage();
-  
-  console.log(systemUsage.usePercent(10));  // 10
-  console.log(systemUsage.usePercent(20));  // 20
-  console.log(systemUsage.usePercent(30));  // 30
-  console.log(systemUsage.usePercent(40));  // 40
-  console.log(systemUsage.usePercent(50));  // 50
-  console.log(systemUsage.usePercent(60));  // 60
-  console.log(systemUsage.usePercent(70));  // 70
-  console.log(systemUsage.usePercent(80));  // 80
-  console.log(systemUsage.usePercent(90));  // 90
-  console.log(systemUsage.usePercent(100)); // 100
+}

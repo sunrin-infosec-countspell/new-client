@@ -90,8 +90,14 @@ export class NetworkSystem {
     }
     
     public addRandomPackets(count: number, isGood: boolean): void{
+        let goodAnswer = true;
         for(let i = 0 ; i <= count ; i++){
-            this.addRandomPacket(isGood);
+            if(!isGood){
+                if (Math.random() < 0.5) {
+                    goodAnswer = !goodAnswer;
+                }
+            }
+            this.addRandomPacket(goodAnswer);
         }
     }
 
