@@ -1,0 +1,241 @@
+/* CRT.css */
+/* 기본 스타일 재설정 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000000;
+}
+
+@keyframes flicker {
+  0% { opacity: 0.97; }
+  5% { opacity: 0.95; }
+  10% { opacity: 0.9; }
+  15% { opacity: 0.95; }
+  20% { opacity: 0.9; }
+  25% { opacity: 0.95; }
+  30% { opacity: 1; }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes textShadow {
+  0% { text-shadow: 0.4389924193300864px 0 1px rgba(255,170,0,0.5), -0.4389924193300864px 0 1px rgba(255,100,0,0.3), 0 0 3px; }
+  5% { text-shadow: 2.7928974010788217px 0 1px rgba(255,170,0,0.5), -2.7928974010788217px 0 1px rgba(255,100,0,0.3), 0 0 3px; }
+  10% { text-shadow: 0.02956275843481219px 0 1px rgba(255,170,0,0.5), -0.02956275843481219px 0 1px rgba(255,100,0,0.3), 0 0 3px; }
+  15% { text-shadow: 0.40218538552878136px 0 1px rgba(255,170,0,0.5), -0.40218538552878136px 0 1px rgba(255,100,0,0.3), 0 0 3px; }
+  20% { text-shadow: 3.4794037899852017px 0 1px rgba(255,170,0,0.5), -3.4794037899852017px 0 1px rgba(255,100,0,0.3), 0 0 3px; }
+  25% { text-shadow: 1.6125630401149584px 0 1px rgba(255,170,0,0.5), -1.6125630401149584px 0 1px rgba(255,100,0,0.3), 0 0 3px; }
+  30% { text-shadow: 0.7015590085143956px 0 1px rgba(255,170,0,0.5), -0.7015590085143956px 0 1px rgba(255,100,0,0.3), 0 0 3px; }
+  35% { text-shadow: 3.896914047650351px 0 1px rgba(255,170,0,0.5), -3.896914047650351px 0 1px rgba(255,100,0,0.3), 0 0 3px; }
+  40% { text-shadow: 3.870905614848819px 0 1px rgba(255,170,0,0.5), -3.870905614848819px 0 1px rgba(255,100,0,0.3), 0 0 3px; }
+  45% { text-shadow: 2.231056963361899px 0 1px rgba(255,170,0,0.5), -2.231056963361899px 0 1px rgba(255,100,0,0.3), 0 0 3px; }
+  50% { text-shadow: 0.08084290417898504px 0 1px rgba(255,170,0,0.5), -0.08084290417898504px 0 1px rgba(255,100,0,0.3), 0 0 3px; }
+  100% { text-shadow: 2.6208764473832513px 0 1px rgba(255,170,0,0.5), -2.6208764473832513px 0 1px rgba(255,100,0,0.3), 0 0 3px; }
+}
+
+/* Root container styles */
+#root {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* 오목 효과를 위한 그라디언트 */
+  background: radial-gradient(
+    circle at center,
+    #1a1a1a 0%,
+    #000000 100%
+  );
+  /* 오목한 음영 효과 */
+  box-shadow: 
+    inset 0 0 150px rgba(0, 0, 0, 0.9),
+    inset 0 0 50px rgba(0, 0, 0, 0.7);
+}
+
+/* Scanline effect */
+#root::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 4px;
+  animation: scanline 10s linear infinite;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Flicker effect */
+#root::after {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: rgba(18, 16, 16, 0.1);
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;
+  animation: flicker 0.15s infinite;
+}
+
+/* Apply CRT effects to all elements */
+#root * {
+  position: relative;
+  z-index: 1;
+  color: #ffa500; /* 앰버 색상 */
+  text-shadow: 
+    0 0 5px rgba(255, 165, 0, 0.5),
+    0 0 10px rgba(255, 140, 0, 0.3),
+    0 0 15px rgba(255, 120, 0, 0.2);
+  animation: textShadow 1.6s infinite;
+}
+
+/* Image adjustments */
+#root img {
+  filter: brightness(0.8) contrast(1.2) sepia(0.8) hue-rotate(320deg);
+}
+
+/* Hover effects for interactive elements */
+#root *:hover {
+  text-shadow: 
+    0 0 5px rgba(255, 165, 0, 0.8),
+    0 0 10px rgba(255, 140, 0, 0.5),
+    0 0 15px rgba(255, 120, 0, 0.3);
+  transition: text-shadow 0.3s ease;
+}
+
+/* 빛나는 가장자리 효과 */
+#root::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at center,
+    transparent 60%,
+    rgba(255, 165, 0, 0.1) 100%
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* 스크롤바 커스터마이징 */
+::-webkit-scrollbar {
+  width: 10px;
+  background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 165, 0, 0.5);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* 입력줄 스타일링 */
+.input-line {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.prompt {
+  color: #ffa500;
+  margin-right: 8px;
+  user-select: none;
+}
+
+/* 입력 필드 스타일링 */
+.input-line input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffa500;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  padding: 0;
+  margin: 0;
+  outline: none;
+}
+
+/* 깜빡이는 커서 */
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.cursor {
+  position: absolute;
+  width: 8px;
+  height: 16px;
+  background-color: #ffa500;
+  margin-left: 4px;
+  animation: blink 1s infinite;
+  transform: translateY(2px);
+}
+
+/* 명령어 히스토리 스타일링 */
+.command-line {
+  color: #ffa500;
+  margin: 4px 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.output-line {
+  color: #ffa500;
+  margin: 4px 0 12px 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  opacity: 0.8;
+}
+
+/* 스크롤바 커스터마이징 */
+.terminal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.terminal::-webkit-scrollbar-thumb {
+  background: rgba(255, 165, 0, 0.5);
+  border-radius: 4px;
+}
+
+/* 선택 텍스트 스타일링 */
+.terminal ::selection {
+  background: rgba(255, 165, 0, 0.3);
+  color: #ffa500;
+}

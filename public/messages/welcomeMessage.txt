@@ -1,0 +1,148 @@
+[    0.000000] kernel: Linux version 5.15.167.4-microsoft-standard-WSL2 (root@f9c826d3017f) (gcc (GCC) 11.2.0, GNU ld (GNU Binutils) 2.37) #1 SMP Tue Nov 5 00:21:55 UTC 2024
+[    0.000000] kernel: Command line: initrd=\initrd.img WSL_ROOT_INIT=1 panic=-1 nr_cpus=20 hv_utils.timesync_implicit=1 console=hvc0 debug pty.legacy_count=0 WSL_ENABLE_CRASH_DUMP=1
+[    0.000000] kernel: KERNEL supported cpus:
+[    0.000000] kernel:   Intel GenuineIntel
+[    0.000000] kernel:   AMD AuthenticAMD
+[    0.000000] kernel:   Centaur CentaurHauls
+[    0.000000] kernel: BIOS-provided physical RAM map:
+[    0.000000] kernel: BIOS-e820: [mem 0x0000000000000000-0x000000000009ffff] usable
+[    0.000000] kernel: BIOS-e820: [mem 0x00000000000e0000-0x00000000000e0fff] reserved
+[    0.000000] kernel: BIOS-e820: [mem 0x0000000000100000-0x00000000001fffff] ACPI data
+[    0.000000] kernel: BIOS-e820: [mem 0x0000000000200000-0x00000000f7ffffff] usable
+[    0.000000] kernel: BIOS-e820: [mem 0x0000000100000000-0x00000003fc1fffff] usable
+[    0.000000] kernel: NX (Execute Disable) protection: active
+[    0.000000] kernel: DMI not present or invalid.
+[    0.547367] kernel: scsi host0: storvsc_host_t
+[    0.547687] kernel: PPP Deflate Compression module registered
+[    0.548329] kernel: PPP MPPE Compression module registered
+[    0.548478] kernel: NET: Registered PF_PPPOX protocol family
+[    0.548637] kernel: usbcore: registered new interface driver cdc_ether
+[    0.548827] kernel: usbcore: registered new interface driver cdc_ncm
+[    0.549022] kernel: usbcore: registered new interface driver r8153_ecm
+[    0.549208] kernel: hv_vmbus: registering driver hv_netvsc
+[    0.549410] kernel: VFIO - User Level meta-driver version: 0.3
+[    0.549890] kernel: usbcore: registered new interface driver cdc_acm
+[    0.550098] kernel: cdc_acm: USB Abstract Control Model driver for USB modems and ISDN adapters
+[    0.551364] kernel: vhci_hcd vhci_hcd.0: USB/IP Virtual Host Controller
+[    0.551551] kernel: vhci_hcd vhci_hcd.0: new USB bus registered, assigned bus number 1
+[    0.551765] kernel: vhci_hcd: created sysfs vhci_hcd.0
+[    0.552307] kernel: usb usb1: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 5.15
+[    0.552716] kernel: usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    0.552928] kernel: usb usb1: Product: USB/IP Virtual Host Controller
+[    0.553104] kernel: usb usb1: Manufacturer: Linux 5.15.167.4-microsoft-standard-WSL2 vhci_hcd
+[    0.553315] kernel: usb usb1: SerialNumber: vhci_hcd.0
+[    0.553535] kernel: hub 1-0:1.0: USB hub found
+[    0.553683] kernel: hub 1-0:1.0: 8 ports detected
+[    0.553958] kernel: vhci_hcd vhci_hcd.0: USB/IP Virtual Host Controller
+[    0.554310] kernel: vhci_hcd vhci_hcd.0: new USB bus registered, assigned bus number 2
+[    0.554586] kernel: usb usb2: We don't know the algorithms for LPM for this host, disabling LPM.
+[    0.554916] kernel: usb usb2: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 5.15
+[    0.555164] kernel: usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    0.555387] kernel: usb usb2: Product: USB/IP Virtual Host Controller
+[    0.555564] kernel: usb usb2: Manufacturer: Linux 5.15.167.4-microsoft-standard-WSL2 vhci_hcd
+[    0.556078] kernel: usb usb2: SerialNumber: vhci_hcd.0
+[    0.556291] kernel: hub 2-0:1.0: USB hub found
+[    0.556431] kernel: hub 2-0:1.0: 8 ports detected
+[    0.556734] kernel: hv_vmbus: registering driver hyperv_keyboard
+[    0.556904] kernel: rtc_cmos 00:00: RTC can wake from S4
+[    0.558015] kernel: rtc_cmos 00:00: registered as rtc0
+[    0.558411] kernel: rtc_cmos 00:00: setting system clock to 2024-11-23T14:23:58 UTC (1732371838)
+[    0.558726] kernel: rtc_cmos 00:00: alarms up to one month, 114 bytes nvram
+[    0.559042] kernel: device-mapper: ioctl: 4.45.0-ioctl (2021-03-22) initialised: dm-devel@redhat.com
+[    0.559398] kernel: device-mapper: raid: Loading target version 1.15.1
+[    0.559639] kernel: hid: raw HID events driver (C) Jiri Kosina
+[    0.559807] kernel: usbcore: registered new interface driver usbhid
+[    0.559973] kernel: usbhid: USB HID core driver
+[    0.560115] kernel: hv_utils: Registering HyperV Utility Driver
+[    0.560277] kernel: hv_vmbus: registering driver hv_utils
+[    0.560438] kernel: hv_vmbus: registering driver hv_balloon
+[    0.560636] kernel: hv_utils: TimeSync IC version 4.0
+[    0.561034] kernel: hv_vmbus: registering driver dxgkrnl
+[    0.561849] kernel: hv_balloon: Using Dynamic Memory protocol version 2.0
+[    0.561974] kernel: drop_monitor: Initializing network drop monitor service
+[    0.562738] kernel: Mirror/redirect action on
+[    0.563081] kernel: u32 classifier
+[    0.563170] kernel:     Performance counters on
+[    0.563171] kernel: Free page reporting enabled
+[    0.563643] kernel:     input device check on
+[    0.564141] kernel: hv_balloon: Cold memory discard hint enabled with order 9
+[    0.564908] kernel:     Actions configured
+[    0.565717] kernel: IPVS: Registered protocols (TCP, UDP)
+[    0.565893] kernel: IPVS: Connection hash table configured (size=4096, memory=32Kbytes)
+[    0.566132] kernel: IPVS: ipvs loaded.
+[    0.566238] kernel: IPVS: [rr] scheduler registered.
+[    0.566386] kernel: IPVS: [wrr] scheduler registered.
+[    0.566527] kernel: IPVS: [sh] scheduler registered.
+[    0.566698] kernel: ipt_CLUSTERIP: ClusterIP Version 0.8 loaded successfully
+[    0.566876] kernel: Initializing XFRM netlink socket
+[    0.567149] kernel: NET: Registered PF_INET6 protocol family
+[    0.567527] kernel: Segment Routing with IPv6
+[    0.567644] kernel: In-situ OAM (IOAM) with IPv6
+[    0.567768] kernel: NET: Registered PF_PACKET protocol family
+[    0.567917] kernel: Bridge firewalling registered
+[    0.568026] kernel: 8021q: 802.1Q VLAN Support v1.8
+[    0.568141] kernel: sctp: Hash tables configured (bind 256/256)
+[    0.568309] kernel: 9pnet: Installing 9P2000 support
+[    0.568454] kernel: Key type dns_resolver registered
+[    0.568597] kernel: Key type ceph registered
+[    0.568770] kernel: libceph: loaded (mon/osd proto 15/24)
+[    0.568988] kernel: NET: Registered PF_VSOCK protocol family
+[    0.569138] kernel: hv_vmbus: registering driver hv_sock
+[    0.569313] kernel: IPI shorthand broadcast: enabled
+[    0.569476] kernel: sched_clock: Marking stable (567094669, 1885500)->(581897200, -12917031)
+[    0.570506] kernel: registered taskstats version 1
+[    0.571754] kernel: Loading compiled-in X.509 certificates
+[    0.574590] kernel: Btrfs loaded, crc32c=crc32c-generic, zoned=no, fsverity=no
+[    0.574883] kernel: clk: Disabling unused clocks
+[    0.577309] kernel: Freeing unused kernel image (initmem) memory: 2016K
+[    0.577603] kernel: Write protecting the kernel read-only data: 30720k
+[    0.578949] kernel: Freeing unused kernel image (text/rodata gap) memory: 2024K
+[    0.580219] kernel: Freeing unused kernel image (rodata/data gap) memory: 572K
+[    0.580432] kernel: Run /init as init process
+[    0.580540] kernel:   with arguments:
+[    0.580649] kernel:     /init
+[    0.580722] kernel:   with environment:
+[    0.580831] kernel:     HOME=/
+[    0.580904] kernel:     TERM=linux
+[    0.580975] kernel:     WSL_ROOT_INIT=1
+[    0.581081] kernel:     WSL_ENABLE_CRASH_DUMP=1
+[    1.377882] kernel: hv_vmbus: Unknown GUID: 6e382d18-3336-4f4b-acc4-2b7703d4df4a
+[    1.379028] kernel: hv_vmbus: Unknown GUID: dde9cbc0-5060-4436-9448-ea1254a5d177
+[    1.379673] kernel: hv_vmbus: Unknown GUID: 6e382d18-3336-4f4b-acc4-2b7703d4df4a
+[    1.379886] kernel: hv_pci 18f7a87b-7c1c-4a95-a4f5-eabfecffa3a4: PCI VMBus probing: Using version 0x10004
+[    1.380563] kernel: hv_pci 18f7a87b-7c1c-4a95-a4f5-eabfecffa3a4: PCI host bridge to bus 7c1c:00
+[    1.381761] kernel: pci_bus 7c1c:00: No busn resource found for root bus, will use [bus 00-ff]
+[    1.382231] kernel: pci 7c1c:00:00.0: [1414:008e] type 00 class 0x030200
+[    1.384299] kernel: pci_bus 7c1c:00: busn_res: [bus 00-ff] end is updated to 00
+[    1.385200] kernel: hv_pci 789c34b8-e67a-4cb9-a3ce-5de7c8f50ca3: PCI VMBus probing: Using version 0x10004
+[    1.385933] kernel: hv_pci 789c34b8-e67a-4cb9-a3ce-5de7c8f50ca3: PCI host bridge to bus e67a:00
+[    1.386219] kernel: pci_bus e67a:00: No busn resource found for root bus, will use [bus 00-ff]
+[    1.386608] kernel: pci e67a:00:00.0: [1414:008e] type 00 class 0x030200
+[    1.388188] kernel: scsi 0:0:0:0: Direct-Access     Msft     Virtual Disk     1.0  PQ: 0 ANSI: 5
+[    1.388612] kernel: pci_bus e67a:00: busn_res: [bus 00-ff] end is updated to 00
+[    1.396030] kernel: sd 0:0:0:0: Attached scsi generic sg0 type 0
+[    1.396434] kernel: sd 0:0:0:0: [sda] 795504 512-byte logical blocks: (407 MB/388 MiB)
+[    1.396712] kernel: sd 0:0:0:0: [sda] Write Protect is on
+[    1.396897] kernel: sd 0:0:0:0: [sda] Mode Sense: 0f 00 80 00
+[    1.397138] kernel: sd 0:0:0:0: [sda] Write cache: disabled, read cache: enabled, doesn't support DPO or FUA
+[    1.398927] kernel: sd 0:0:0:0: [sda] Attached SCSI disk
+[    1.432383] kernel: scsi 0:0:0:1: Direct-Access     Msft     Virtual Disk     1.0  PQ: 0 ANSI: 5
+[    1.447354] kernel: sd 0:0:0:1: Attached scsi generic sg1 type 0
+[    1.447979] kernel: sd 0:0:0:1: [sdb] 8388616 512-byte logical blocks: (4.29 GB/4.00 GiB)
+[    1.448990] kernel: sd 0:0:0:1: [sdb] 4096-byte physical blocks
+[    1.450361] kernel: sd 0:0:0:1: [sdb] Write Protect is off
+[    1.451077] kernel: sd 0:0:0:1: [sdb] Mode Sense: 0f 00 00 00
+[    1.451764] kernel: sd 0:0:0:1: [sdb] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+[    1.455643] kernel: sd 0:0:0:1: [sdb] Attached SCSI disk
+[    2.587215] /sbin/ldconfig.real:
+[    2.587218] unknown: /usr/lib/wsl/lib/libcuda.so.1 is not a symbolic link
+[    2.587814] unknown:
+[    2.723685] kernel: misc dxg: dxgk: dxgkio_is_feature_enabled: Ioctl failed: -22
+[    2.728071] kernel: misc dxg: dxgk: dxgkio_query_adapter_info: Ioctl failed: -22
+[    2.729611] kernel: misc dxg: dxgk: dxgkio_query_adapter_info: Ioctl failed: -22
+[    2.729900] kernel: misc dxg: dxgk: dxgkio_query_adapter_info: Ioctl failed: -22
+[    2.731176] kernel: misc dxg: dxgk: dxgkio_query_adapter_info: Ioctl failed: -2
+[    2.733006] kernel: misc dxg: dxgk: dxgkio_query_adapter_info: Ioctl failed: -22
+[    2.733300] kernel: misc dxg: dxgk: dxgkio_query_adapter_info: Ioctl failed: -22
+[    2.733528] kernel: misc dxg: dxgk: dxgkio_query_adapter_info: Ioctl failed: -22
+[    2.733810] kernel: misc dxg: dxgk: dxgkio_query_adapter_info: Ioctl failed: -2

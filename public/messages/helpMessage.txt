@@ -1,0 +1,27 @@
+================================================================
+                 Veritas Recovery System
+             Security Level: CONFIDENTIAL
+================================================================
+
+AVAILABLE COMMANDS:
+-----------------
+
+  [start]   Initialize Recovery Process
+            • Scanning network for dangerous computer
+            • Establishing secure connection
+            • Beginning recovery sequence
+
+  [exit]    Terminate Program
+            • Closing all active connections
+            • Clearing system cache
+            • Performing safe shutdown
+
+----------------------------------------------------------------
+USAGE:
+  Simply type the command and press Enter
+
+NOTES:
+  • Commands are case-sensitive
+  • Only one command can be executed at a time
+  • System will auto-terminate on recovery completion
+================================================================
