@@ -32,39 +32,30 @@ export class GameFileSystem
     public ListDirectory(): string {
         let output = "";
         
-        // 각 항목을 순회하며 Linux 스타일로 포맷팅
         this.current_node.child.forEach(item => {
-            // 파일/디렉토리 타입에 따른 권한 표시
             const isDirectory = item.id === "Directory";
             const permissions = isDirectory ? "drwxr-xr-x" : "-rw-r--r--";
-            
-            // 소유자와 그룹 (예시)
             const owner = "user";
             const group = "user";
-            
-            // 크기 (디렉토리는 4096, 파일은 실제 데이터 길이)
             const size = isDirectory ? 4096 : 
                 'data' in item ? item.data.length : 0;
             
-            // 날짜 (현재 날짜 사용)
             const date = new Date().toLocaleString('en-us', {
                 month: 'short',
                 day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit'
             }).replace(',', '');
+    
+            // 디렉토리 표시를 위한 간단한 마커 사용
+            const displayName = isDirectory ? `[D]${item.name}` : item.name;
             
-            // 파일/디렉토리 이름 (디렉토리는 파란색으로 표시)
-            const name = isDirectory ? 
-                `\x1b[34m${item.name}\x1b[0m` : // 파란색
-                item.name;
-            
-            // 한 줄로 조합
-            output += `${permissions} 1 ${owner} ${group} ${size.toString().padStart(5)} ${date} ${name}\n`;
+            output += `${permissions} 1 ${owner} ${group} ${size.toString().padStart(5)} ${date} ${displayName}\n`;
         });
         
         return output;
     }
+    
     public StepInto(dst:string):string
     {
         let target:string=this.extractMeaningfulName(dst)
@@ -101,7 +92,7 @@ export class GameFileSystem
         this.current_node.child = this.current_node.child.filter(item => item.name!== name);
         return;
     }
-    public FileData(name:string):any
+    public FileData(name:string):string|null
     {
         for(let node of this.current_node.child)
         {
@@ -314,6 +305,7 @@ export class GameFileSystem
         console.log(`can't found ${target}`)
         return false
     }
+
     public edit_name(path:string, name:string):boolean
     {
         let target:string=this.extractMeaningfulName(path)
@@ -349,7 +341,7 @@ export class GameFileSystem
     }
 
     // function 키워드 제거
-    private genHex(length: number): string {
+    public genHex(length: number): string {
         const hexChars = '0123456789abcdef';
         let result = '';
         for (let i = 0; i < length; i++) {
@@ -360,23 +352,18 @@ export class GameFileSystem
     }
 
     // function 키워드 제거
-    public mutateFile(directory: DirectoryNode): void {
-        let original_file_size: number = 0;
-        if (this.Probability(0.5)) {
-            for (let node of directory.child) {
-                if (node.id === 'File') {
-                    if (this.Probability(0.7)) {
-                        original_file_size = (node as FileNode).data.length;
-                        (node as FileNode).data = this.genHex(original_file_size);
-                    }
-                } else {
-                    if (this.Probability(0.4)) {
-                        this.mutateFile(node);
-                    }
+    public mutateFile(directory: DirectoryNode = this.current_node): void {
+        for (let node of directory.child) {
+            if (node.id === 'File') {
+                if (this.Probability(0.7)) {
+                    const original_file_size = (node as FileNode).data.length;
+                    (node as FileNode).data = this.genHex(original_file_size);
+                }
+            } else if (node.id === 'Directory') {
+                if (this.Probability(0.4)) {
+                    this.mutateFile(node as DirectoryNode);
                 }
             }
-        } else {
-            return;
         }
     }
 }

@@ -4,7 +4,7 @@ import { NetworkSystem } from './scripts/network'
 import { GameFileSystem } from './scripts/file-system'
 import { SystemUsage } from './scripts/usage'
 import { UserManager } from './scripts/user'
-import { Answer } from './scripts/answer'  
+import { Answer } from './scripts/answer'
 import './css/effect.css'
 import './css/terminal.css'
 
@@ -19,17 +19,26 @@ function App() {
   const [socket] = useState<NakamaSocket>(client.createSocket());
   const [Network] = useState<NetworkSystem>(new NetworkSystem());
   const [FileSystem] = useState<GameFileSystem>(new GameFileSystem());
-  const [System] = useState<SystemUsage>(new SystemUsage());
+  const [SystemStat] = useState<SystemUsage>(new SystemUsage());
   const [Users] = useState<UserManager>(new UserManager());
   const [VirusSystem] = useState<Answer>(new Answer());  // Answer 인스턴스 생
   
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const [isMatched, setIsMatched] = useState<boolean>(false);
+  const [userHP, setUserHP] = useState<number>(100);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   const [command, setCommand] = useState<string[]>([]);
   const [currentPath, setCurrentPath] = useState<string>('game@server:~$');
   const terminalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (userHP <= 0) {
+      setCommand((prev) => [...prev, 'Your HP has dropped to 0. Game Over.']);
+      setIsMatched(false);
+    }
+  }, [userHP]);
 
   useEffect(() => {
     const connectToServer = async () => {
@@ -72,6 +81,41 @@ function App() {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
   }, [command]); 
+
+  useEffect(() => {
+    if (elapsedTime > 0) {
+      setUserHP(calculateHP(elapsedTime));
+    }
+  }, [elapsedTime]);
+
+  useEffect(() => {
+    let hpInterval: NodeJS.Timeout;
+
+    if (isMatched) {
+      hpInterval = setInterval(() => {
+        setElapsedTime((prevTime) => prevTime + 1);
+      }, 1000);
+    } else {
+      clearInterval(hpInterval);
+      setElapsedTime(0);
+      setUserHP(100); // 매치 종료 시 HP 초기화
+    }
+
+    return () => clearInterval(hpInterval);
+  }, [isMatched]);
+
+  const calculateHP = (time: number): number => {
+    const totalDuration = 900; // 15분 = 900초
+    const maxHP = 100;
+    const k = 2; // 감소 속도 가속을 위한 지수
+  
+    const t = time > totalDuration ? totalDuration : time;
+  
+    // 시간에 따른 HP 계산 (자연스럽게 감소 속도 증가)
+    const hp = maxHP * (1 - Math.pow(t / totalDuration, k));
+  
+    return hp > 0 ? hp : 0;
+  };
 
   const showMessage = async (path: string) => {
     try {
@@ -135,14 +179,23 @@ function App() {
         case 'pwd':
           setCommand(prev => [...prev, FileSystem.CurrentDirectory()]);
           break;
-          case 'ls':
-            const dirList = FileSystem.ListDirectory();
-            dirList.split('\n').forEach(line => {
-                if (line.trim()) {
-                    setCommand(prev => [...prev, line]);
-                }
-            });
-            break;
+        case 'ls':
+          const dirList = FileSystem.ListDirectory();
+          dirList.split('\n').forEach(line => {
+              if (line.trim()) {
+                  if (line.includes('<dir>')) {
+                      // 디렉토리 스타일링
+                      const styledLine = line.replace(
+                          /<dir>(.*?)<\/dir>/g, 
+                          (_, name) => name // 여기서 CSS로 색상 처리
+                      );
+                      setCommand(prev => [...prev, styledLine]);
+                  } else {
+                      setCommand(prev => [...prev, line]);
+                  }
+              }
+          });
+          break;
         case 'cd':
           if(args[0] === '..'){
             FileSystem.StepOut();
@@ -156,7 +209,7 @@ function App() {
           setCommand(prev => [...prev, Network.getPackets()]);
           break;
         case 'system':
-          setCommand(prev => [...prev, `System CPU Usage: ${System.getUsage()}%`]);
+          setCommand(prev => [...prev, `System CPU Usage: ${SystemStat.getUsage()}%`]);
           break;
         case 'users':
           const userList = Users.readAllUsers();
@@ -167,15 +220,24 @@ function App() {
           break;
         case 'answer':
           if (args.length === 0) {
-            setCommand(prev => [...prev, 'Usage: answer <virus-name>']);
-            break;
+              setCommand(prev => [...prev, 'Usage: answer <virus-name>']);
+              break;
           }
-          console.log("Checking virus name:", args[0]);
+          const currentVirus = VirusSystem.getCurrentVirusType();
+          console.log("Checking virus name:", args[0], "against:", currentVirus);
+          
+          if (!currentVirus) {
+              setCommand(prev => [...prev, 'Error: No virus type is currently set']);
+              break;
+          }
+          
           if (VirusSystem.checkVirusName(args[0])) {
-            setCommand(prev => [...prev, 'Correct! You have identified the virus.']);
-            socket.leaveMatch(matchId);
+              setCommand(prev => [...prev, 'Correct! You have identified the virus.']);
+              
+              setIsMatched(false);
           } else {
-            setCommand(prev => [...prev, 'Incorrect virus identification. Try again.']);
+              setCommand(prev => [...prev, 'Incorrect virus identification. Try again.']);
+              setUserHP(prev => prev - 8);
           }
           break;
         case "clear":
@@ -183,6 +245,23 @@ function App() {
           break;
         case "exit":
           matchExit();
+          break;
+        case "health":
+          setCommand(prev => [...prev, `Player HP: ${userHP}`]);
+          break;
+        case 'cat':
+          if (args.length === 0) {
+              setCommand(prev => [...prev, 'Usage: cat <filename>']);
+              break;
+          }
+          const fileContent = FileSystem.FileData(args[0]);
+          if (fileContent !== null) {
+              fileContent.split('\n').forEach(line => {
+                  setCommand(prev => [...prev, line]);
+              });
+          } else {
+              setCommand(prev => [...prev, `cat: ${args[0]}: No such file or directory`]);
+          }
           break;
         default:
           setCommand(prev => [...prev, 'Command not found']);
@@ -211,133 +290,192 @@ function App() {
     socket.addMatchmaker(matchMakerQuery, minCount, maxCount);
 
     socket.onmatchmakermatched = async (matched) => {
-        console.log("Matchmaker matched:", matched);
-        setIsMatched(true);
-        setIsDisabled(false);
-        const matchedPlayers = matched.users.map(user => user.presence.user_id);
+        try {
+            console.log("Matchmaker matched:", matched);
+            setIsMatched(true);
+            const matchedPlayers = matched.users.map(user => user.presence.user_id);
 
-        const match = await socket.joinMatch(null, matched.token);
-        matchId = match.match_id;
+            const match = await socket.joinMatch(null, matched.token);
+            matchId = match.match_id;
+            setUserHP(100);
 
-        setCommand(prev => [...prev, 'Match found! Starting program...']);
-        setCommand(prev => [...prev, `ssh game@veritas.${matchedPlayers[1]}.com`]);
-        clearCommand();
-        showMessage("welcomeGameMessage");
-        pathChange('game@veritas:~$');
+            setCommand(prev => [...prev, 'Match found! Starting program...']);
+            setCommand(prev => [...prev, `ssh game@veritas.${matchedPlayers[1]}.com`]);
+            clearCommand();
+            showMessage("welcomeGameMessage");
+            pathChange('game@veritas:~$');
 
-        // 시스템 초기화
-        initializeSystem();
-        
-        // 바이러스 로드 및 시뮬레이션
-        await VirusSystem.loadRandomVirus();
-        await simulateVirusBehavior();
+            // 시스템 초기화
+            initializeSystem();
+            
+            // 바이러스 로드
+            const virusResult = await VirusSystem.loadRandomVirus();
+            if (!virusResult.success) {
+                throw new Error(`Failed to load virus: ${virusResult.error}`);
+            }
 
-        setIsDisabled(false);
+            if (!virusResult.virusType) {
+                throw new Error('No virus type returned');
+            }
 
-        socket.onmatchdata = (matchData) => {
-            console.log("Match data received:", matchData);
+            console.log('Loaded virus type:', virusResult.virusType);
+            
+            // 바이러스 시뮬레이션
+            await simulateVirusBehavior();
+
+            setIsDisabled(false);
+
+        } catch (error) {
+            console.error("Error in match setup:", error);
+            setCommand(prev => [...prev, 'Error initializing game. Please try again.']);
+            setIsDisabled(false);
         }
     }
-}
+  };
   
   // 시스템 초기화 함수
   const initializeSystem = () => {
-    // 파일 시스템 초기화
+    // 루트 디렉토리로 이동
     FileSystem.goRoot();
+
+    // 기본 시스템 디렉토리 구조
+    FileSystem.MakeDirectory("etc");
+    FileSystem.MakeDirectory("var");
+    FileSystem.MakeDirectory("usr");
     FileSystem.MakeDirectory("home");
+
+    // /etc 디렉토리 설정
+    FileSystem.StepInto("etc");
+    FileSystem.make("passwd", "root:x:0:0:root:/root:/bin/bash\nuser:x:1000:1000:user:/home/user:/bin/bash");
+    FileSystem.make("shadow", "root:$6$xyz....:18888:0:99999:7:::\nuser:$6$abc....:18888:0:99999:7:::");
+    FileSystem.make("hostname", "veritas-system");
+    FileSystem.make("hosts", "127.0.0.1 localhost\n192.168.1.1 gateway");
+    FileSystem.StepOut();
+
+    // /var 디렉토리 설정
+    FileSystem.StepInto("var");
+    FileSystem.MakeDirectory("log");
+    FileSystem.StepInto("log");
+    FileSystem.make("syslog", "System startup completed\nServices initialized\nNetwork connectivity established");
+    FileSystem.make("auth.log", "Session opened for user admin\nSuccessful sudo command\nSSH login accepted");
+    FileSystem.make("kern.log", "Kernel: CPU0 initialized\nKernel: Memory management started\nKernel: Network interfaces detected");
+    FileSystem.make("cron.log", "Daily update triggered\nSystem maintenance scheduled\nBackup process started");
+    FileSystem.StepOut();
+    FileSystem.StepOut();
+
+    // /home 디렉토리 설정
     FileSystem.StepInto("home");
     FileSystem.MakeDirectory("user");
     FileSystem.StepInto("user");
-    FileSystem.MakeDirectory("documents");
-    FileSystem.MakeDirectory("downloads");
-    FileSystem.make("user_data.txt", "Important user data");
-    FileSystem.make("config.ini", "System configuration");
-  
-    // 네트워크 초기화
-    Network.addRandomPackets(10, true); // 정상적인 네트워크 트래픽
-  
-    // 사용자 초기화
-    Users.createUser("admin", "administrators", "root");
+    
+    // 사용자 디렉토리 구조
+    const userDirs = ["Documents", "Downloads", "Pictures", "Videos", "Desktop"];
+    userDirs.forEach(dir => FileSystem.MakeDirectory(dir));
+
+    // 기본 사용자 파일들
+    FileSystem.make(".bashrc", "export PATH=$PATH:/usr/local/bin\nalias ll='ls -la'\nalias update='apt update'");
+    FileSystem.make(".bash_history", "ls -la\ncd Documents\ncat config.txt\nsudo apt update");
+    FileSystem.make("user_config.ini", "[Settings]\ntheme=dark\nlanguage=en\nnotifications=true");
+
+    // 문서 디렉토리 설정
+    FileSystem.StepInto("Documents");
+    FileSystem.make("notes.txt", "Meeting notes from last week\nProject deadlines\nImportant contacts");
+    FileSystem.make("config.conf", "# System Configuration\nport=8080\nhost=localhost\ndebug=false");
+    FileSystem.StepOut();
+
+    // 다운로드 디렉토리 설정
+    FileSystem.StepInto("Downloads");
+    FileSystem.make("downloaded_file.zip", "Binary content...");
+    FileSystem.make("install.sh", "#!/bin/bash\necho 'Installing...'\napt install package");
+    FileSystem.StepOut();
+
+    // 초기 위치로 복귀
+    FileSystem.goRoot();
+    FileSystem.StepInto("home");
+    FileSystem.StepInto("user");
+
+    // 네트워크 초기화 - 정상 트래픽 생성
+    Network.addRandomPackets(15, true);
+
+    // 사용자 계정 초기화
+    Users.createUser("root", "administrators", "root");
+    Users.createUser("admin", "administrators", "admin");
     Users.createUser("user", "users", "standard");
     
-    // 시스템 사용량 초기화
-    System.usePercent(30); // 기본 시스템 사용량
-  };
+    // 시스템 사용량 초기 설정
+    SystemStat.usePercent(25); // 기본 시스템 사용량
+};
   
   // 바이러스 시뮬레이션 함수 수정
-  const simulateVirusBehavior = async () => {
-    try {
-      await VirusSystem.loadRandomVirus();
-      const virus = VirusSystem.virus;
+const simulateVirusBehavior = async () => {
+  try {
+      const virusProps = VirusSystem.getVirusProperties();
       
       // 시스템 과부하 시뮬레이션
-      if (virus["system-overload"]) {
-        const usage = Math.floor(Math.random() * 5 + 6) * 10; // 60%~100%
-        System.usePercent(usage);
-        setCommand(prev => [...prev, `Warning: High CPU usage detected: ${usage}%`]);
-        // 과부하로 인한 임시 파일 생성
-        FileSystem.make("temp" + Date.now() + ".tmp", "System overflow data");
+      if (virusProps["system-overload"]) {
+          const usage = Math.round((Math.floor(Math.random() * 3 + 8) * 10)/10)*10; // 80-100%의 10의 배수
+          SystemStat.usePercent(usage);
+          setCommand(prev => [...prev, `Warning: High CPU usage detected: ${usage}%`]);
+          FileSystem.make("high_cpu.log", `Process using excessive CPU: pid=${Math.floor(Math.random() * 10000)}`);
       }
-  
+
       // 네트워크 과부하 시뮬레이션
-      if (virus["network-overload"]) {
-        Network.addRandomPackets(30, false);
-        setCommand(prev => [...prev, "Warning: Unusual network activity detected"]);
-        // 의심스러운 네트워크 로그 파일 생성
-        FileSystem.make("network.log", "Suspicious network activity detected");
+      if (virusProps["network-overload"]) {
+          Network.addRandomPackets(50, false);
+          FileSystem.make("network_traffic.log", "Unusual outbound connections detected\nHigh bandwidth usage on port 445\nMultiple connection attempts to unknown hosts");
       }
-  
-      // 사용자 수정 시뮬레이션
-      if (virus["user-modification"]) {
-        Users.createUser("malicious_user", "administrators", "root");
-        Users.updateUser("user", { authority: "restricted" });
-        setCommand(prev => [...prev, "New user account created: malicious_user"]);
-        FileSystem.make("user.log", "User permission changes detected");
-      }
-  
+
       // 이벤트 로그 수정 시뮬레이션
-      if (virus["event-log-modification"]) {
-        Network.addPacket("127.0.0.1", "unknown", "Event log cleared");
-        FileSystem.make("system.log", "Modified system logs");
-        FileSystem.make("audit.log", "Cleared audit trails");
-        setCommand(prev => [...prev, "System logs have been modified"]);
+      if (virusProps["event-log-modification"]) {
+          FileSystem.StepInto("var");
+          FileSystem.StepInto("log");
+          // 기존 로그 파일 변조
+          FileSystem.edit("auth.log", "log cleared for security purposes");
+          FileSystem.edit("syslog", "system maintenance completed");
+          // 의심스러운 새 로그 파일
+          FileSystem.make("unusual_activity.log", "System maintenance\nScheduled backup\nRoutine cleanup");
+          FileSystem.StepOut();
+          FileSystem.StepOut();
       }
-  
+
       // 바이러스 활성화 시뮬레이션
-      if (virus["virus-activation"]) {
-        FileSystem.MakeDirectory("hidden");
-        FileSystem.StepInto("hidden");
-        FileSystem.make("virus.exe", "Malicious content");
-        FileSystem.make("payload.dat", "Encrypted malware payload");
-        FileSystem.StepOut();
-        setCommand(prev => [...prev, "Unknown process started: virus.exe"]);
+      if (virusProps["virus-activation"]) {
+          FileSystem.MakeDirectory(".hidden");
+          FileSystem.StepInto(".hidden");
+          FileSystem.make("virus.exe", "MZ\x90\x00\x03\x00...");
+          FileSystem.make("config.dat", FileSystem.genHex(100));
+          FileSystem.StepOut();
+          // 의심스러운 프로세스 흔적
+          FileSystem.make("strange_process.pid", "12345");
       }
-  
+
       // 관리자 권한 상승 시뮬레이션
-      if (virus["admin-privilege-escalation"]) {
-        Users.updateUser("malicious_user", { authority: "system" });
-        FileSystem.make("sudo.log", "Privilege escalation detected");
-        System.usePercent(45); // 권한 상승으로 인한 시스템 부하 증가
-        setCommand(prev => [...prev, "Warning: Unauthorized privilege escalation detected"]);
+      if (virusProps["admin-privilege-escalation"]) {
+          Users.createUser("backdoor", "administrators", "root");
+          FileSystem.StepInto("etc");
+          FileSystem.edit("passwd", FileSystem.FileData("passwd") + "\nbackdoor:x:0:0::/home/backdoor:/bin/bash");
+          FileSystem.edit("shadow", FileSystem.FileData("shadow") + "\nbackdoor:$6$hacked....:18888:0:99999:7:::");
+          FileSystem.StepOut();
       }
-  
+
       // 파일 수정 시뮬레이션
-      if (virus["file-modification"]) {
-        FileSystem.MakeDirectory("encrypted");
-        FileSystem.StepInto("encrypted");
-        const files = ["doc1.txt", "doc2.txt", "data.db"];
-        files.forEach(file => {
-          FileSystem.make(file + ".encrypted", "Ransomware encrypted content");
-        });
-        FileSystem.StepOut();
-        FileSystem.make("ransom_note.txt", "Your files have been encrypted");
-        setCommand(prev => [...prev, "Multiple files have been encrypted"]);
+      if (virusProps["file-modification"]) {
+          // 재귀적 파일 암호화 시뮬레이션
+          FileSystem.StepInto("home");
+          FileSystem.StepInto("user");
+          FileSystem.mutateFile();
+          FileSystem.make("READ_ME.txt", "Your files have been encrypted. Send 1 BTC to address: 1A1zP1...");
       }
-  
-    } catch (error) {
+      
+      // 원래 위치로 복귀
+      FileSystem.goRoot();
+      FileSystem.StepInto("home");
+      FileSystem.StepInto("user");
+
+  } catch (error) {
       console.error("Error in virus simulation:", error);
-    }
-  };
+  }
+};
 
   return (
     <>
@@ -348,6 +486,17 @@ function App() {
               <div key={index} className='command-line'>
                 {item.startsWith('game@') ? (
                   <span>{item}</span>
+                ) : item.includes('[D]') ? (
+                  <span>
+                    {item.split('[D]').map((part, i) => {
+                      if (i === 0) return <span key={`part-${i}`}>{part}</span>;
+                      return (
+                          <span key={`part-${i}`}>
+                              <span style={{ color: '#3498db', fontWeight: 'bold' }}>{part}</span>
+                          </span>
+                      );
+                  })}
+                  </span>
                 ) : (
                   <span className='system-message'>{item}</span>
                 )}
@@ -369,7 +518,7 @@ function App() {
         </div>
       </div>
     </>
-  )
+  );
 }
 
 export default App
