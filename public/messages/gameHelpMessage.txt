@@ -1,0 +1,89 @@
+===================================
+         Terminal Command Guide
+===================================
+
+1. **pwd**
+   - Prints the current directory path.
+
+2. **ls**
+   - Lists the files and directories in the current directory.
+
+3. **cd [directory]**
+   - Changes the current directory to the specified one.
+   - Use `..` to move to the parent directory.
+
+4. **network**
+   - Fetches and displays network packet information.
+   - Useful for analyzing network traffic.
+
+5. **system**
+   - Displays the system's CPU usage.
+   - Helps in monitoring system performance.
+
+6. **users**
+   - Shows a list of registered users on the system.
+   - Provides each user's name, group, and authority level.
+
+7. **answer [virus-name]**
+   - Submits the name of the virus you have identified.
+   - If correct, you win the game and your opponent loses.
+   - If incorrect, your HP decreases, and you can try again.
+
+8. **clear**
+   - Clears the terminal screen.
+   - Removes all previous commands and outputs from view.
+
+9. **virus**
+   - Displays information about different virus types.
+   - Helps you understand virus characteristics.
+
+10. **help**
+    - Provides a list of available commands and their usage.
+    - Useful for getting assistance during gameplay.
+
+11. **exit**
+    - Exits the current match.
+    - Returns you to the main menu.
+
+12. **health**
+    - Displays your current HP (Health Points).
+    - Allows you to keep track of your remaining health.
+
+13. **cat [filename]**
+    - Displays the contents of the specified file.
+    - If the file does not exist, an error message is shown.
+
+14. **Command not found**
+    - This message appears when an unrecognized command is entered.
+    - Check for typos and try again.
+
+---
+
+**Usage Examples:**
+
+- Check current directory: `pwd`
+- List directory contents: `ls`
+- Change directory: `cd Documents`
+- View network information: `network`
+- Check system status: `system`
+- View user list: `users`
+- Submit virus name: `answer trojan`
+- Clear the screen: `clear`
+- View virus information: `virus`
+- Display help: `help`
+- Exit the game: `exit`
+- Check health points: `health`
+- View file contents: `cat notes.txt`
+
+---
+
+**Notes:**
+
+- Commands are case-insensitive.
+- Use these commands to analyze the system and find the virus during the game.
+- Submitting the wrong virus name will decrease your HP, so be careful.
+- If you need assistance, use the `help` command at any time.
+
+---
+
+This guide should help you understand the available terminal commands and their roles in the game. Good luck!

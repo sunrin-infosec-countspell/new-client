@@ -21,13 +21,16 @@ function App() {
   const [FileSystem] = useState<GameFileSystem>(new GameFileSystem());
   const [SystemStat] = useState<SystemUsage>(new SystemUsage());
   const [Users] = useState<UserManager>(new UserManager());
-  const [VirusSystem] = useState<Answer>(new Answer());  // Answer 인스턴스 생
+  const [VirusSystem] = useState<Answer>(new Answer()); 
   
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const [isMatched, setIsMatched] = useState<boolean>(false);
   const [userHP, setUserHP] = useState<number>(100);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [totalDamage, setTotalDamage] = useState<number>(0);
+  const maxHP = 100;
+
 
   const [command, setCommand] = useState<string[]>([]);
   const [currentPath, setCurrentPath] = useState<string>('game@server:~$');
@@ -37,6 +40,9 @@ function App() {
     if (userHP <= 0) {
       setCommand((prev) => [...prev, 'Your HP has dropped to 0. Game Over.']);
       setIsMatched(false);
+      sleep(5000).then(() => {
+        sendMatchState('victory');
+      });
     }
   }, [userHP]);
 
@@ -84,9 +90,11 @@ function App() {
 
   useEffect(() => {
     if (elapsedTime > 0) {
-      setUserHP(calculateHP(elapsedTime));
+      const hpDecay = calculateHPDecay(elapsedTime);
+      setTotalDamage(prevDamage => prevDamage + hpDecay);
     }
   }, [elapsedTime]);
+  
 
   useEffect(() => {
     let hpInterval: NodeJS.Timeout;
@@ -104,18 +112,16 @@ function App() {
     return () => clearInterval(hpInterval);
   }, [isMatched]);
 
-  const calculateHP = (time: number): number => {
+  const calculateHPDecay = (time: number): number => {
     const totalDuration = 900; // 15분 = 900초
-    const maxHP = 100;
-    const k = 2; // 감소 속도 가속을 위한 지수
+    const k = 2; // 감소 속도 조절 지수
   
-    const t = time > totalDuration ? totalDuration : time;
+    const t = time >= totalDuration ? totalDuration : time;
+    const decay = maxHP * (Math.pow(t / totalDuration, k) - Math.pow((t - 1) / totalDuration, k));
   
-    // 시간에 따른 HP 계산 (자연스럽게 감소 속도 증가)
-    const hp = maxHP * (1 - Math.pow(t / totalDuration, k));
-  
-    return hp > 0 ? hp : 0;
+    return decay;
   };
+  
 
   const showMessage = async (path: string) => {
     try {
@@ -154,6 +160,14 @@ function App() {
     setCommand([]);
   }
 
+  const sendMatchState = (gameState: string) => {
+    const opCode = 1;
+    const data = { "gameState": gameState };
+    const encodedData = new TextEncoder().encode(JSON.stringify(data));
+    socket.sendMatchState(matchId, opCode, encodedData);
+    console.log("Match data sent:", data);
+  };
+
   const checkCommand = (newCommand: string) => {
     const [command, ...args] = newCommand.split(' ');
     if(!isMatched){
@@ -184,10 +198,9 @@ function App() {
           dirList.split('\n').forEach(line => {
               if (line.trim()) {
                   if (line.includes('<dir>')) {
-                      // 디렉토리 스타일링
                       const styledLine = line.replace(
                           /<dir>(.*?)<\/dir>/g, 
-                          (_, name) => name // 여기서 CSS로 색상 처리
+                          (_, name) => name 
                       );
                       setCommand(prev => [...prev, styledLine]);
                   } else {
@@ -220,34 +233,42 @@ function App() {
           break;
         case 'answer':
           if (args.length === 0) {
-              setCommand(prev => [...prev, 'Usage: answer <virus-name>']);
-              break;
+            setCommand(prev => [...prev, 'Usage: answer <virus-name>']);
+            break;
           }
           const currentVirus = VirusSystem.getCurrentVirusType();
           console.log("Checking virus name:", args[0], "against:", currentVirus);
           
           if (!currentVirus) {
-              setCommand(prev => [...prev, 'Error: No virus type is currently set']);
-              break;
+            setCommand(prev => [...prev, 'Error: No virus type is currently set']);
+            break;
           }
           
+          // 'answer' 명령어에서 정답일 경우
           if (VirusSystem.checkVirusName(args[0])) {
-              setCommand(prev => [...prev, 'Correct! You have identified the virus.']);
-              
-              setIsMatched(false);
+            setCommand(prev => [...prev, 'Correct! You have identified the virus.']);
+            sendMatchState('defeat'); // 상대방에게 패배 메시지 전송
+            setIsMatched(false);
           } else {
-              setCommand(prev => [...prev, 'Incorrect virus identification. Try again.']);
-              setUserHP(prev => prev - 8);
+            setTotalDamage(prevDamage => prevDamage + 30);
+            setCommand(prev => [...prev, 'Incorrect virus identification. Try again.']);
+            showMessage('panicMessage')
           }
-          break;
+          break;    
         case "clear":
           clearCommand();
+          break;
+        case "virus":
+          showMessage('virusType');
+          break;
+        case "help":
+          showMessage('gameHelpMessage');
           break;
         case "exit":
           matchExit();
           break;
         case "health":
-          setCommand(prev => [...prev, `Player HP: ${userHP}`]);
+          setCommand(prev => [...prev, `Player HP: ${Math.floor(userHP)}`]);
           break;
         case 'cat':
           if (args.length === 0) {
@@ -297,6 +318,7 @@ function App() {
 
             const match = await socket.joinMatch(null, matched.token);
             matchId = match.match_id;
+            console.log("Match joined:", matchId);
             setUserHP(100);
 
             setCommand(prev => [...prev, 'Match found! Starting program...']);
@@ -324,6 +346,28 @@ function App() {
             await simulateVirusBehavior();
 
             setIsDisabled(false);
+
+            socket.onmatchdata = (matchData) => {
+              console.log("Match data received:", matchData);
+              const contentStr = new TextDecoder().decode(matchData.data);
+              console.log("Match data received:", contentStr);
+            
+              try {
+                const content = JSON.parse(contentStr);
+                if (content.gameState === 'victory') {
+                  setCommand(prev => [...prev, 'Congratulations! You have won the game.']);
+                  showMessage('victoryMessage');
+                  setIsMatched(false);
+                } else if (content.gameState === 'defeat') {
+                  setCommand(prev => [...prev, 'You have been defeated.']);
+                  showMessage('defeatMessage');
+                  setIsMatched(false);
+                }
+              } catch (e) {
+                console.error("Failed to parse match data:", e);
+              }
+            };
+            
 
         } catch (error) {
             console.error("Error in match setup:", error);
@@ -511,7 +555,7 @@ const simulateVirusBehavior = async () => {
               disabled={isDisabled}  
               autoFocus 
               spellCheck="false"
-              placeholder={isDisabled ? "waiting system..." : "Enter command..."}  
+              placeholder={isDisabled ? "waiting system..." : "Enter command... /help for help"}  
               style={{ cursor: isDisabled ? 'not-allowed' : 'text' }}
             />
           </div>

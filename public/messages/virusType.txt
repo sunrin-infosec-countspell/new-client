@@ -1,0 +1,37 @@
+========================
+       Malware Traits
+========================
+
+1. Virus
+------------------------
+- Event Log Modification: Enabled
+- Virus Activation: Enabled
+- File Modification: Enabled
+
+2. Worm
+------------------------
+- System Overload: Enabled
+- Network Overload: Enabled
+
+3. Trojan
+------------------------
+- Event Log Modification: Enabled
+
+4. Ransomware
+------------------------
+- Event Log Modification: Enabled
+- File Modification: Enabled
+
+5. Spyware
+------------------------
+- Event Log Modification: Enabled
+- File Modification: Enabled
+
+6. Rootkit
+------------------------
+- Event Log Modification: Enabled
+- Admin Privilege Escalation: Enabled
+
+7. Botnet
+------------------------
+- Network Overload: Enabled
