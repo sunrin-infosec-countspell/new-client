@@ -55,8 +55,8 @@ export class GameFileSystem
         
         return output;
     }
-    
-    public StepInto(dst:string):string
+
+    public StepInto(dst:string):any
     {
         let target:string=this.extractMeaningfulName(dst)
         for(let node of this.current_node.child)

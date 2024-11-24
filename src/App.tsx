@@ -13,7 +13,7 @@ function App() {
   const serverAddr = '192.168.57.175'
   const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-  let matchId = "";
+  //let matchId = "";
 
   const [client] = useState<Client>(new Client(serverKey, serverAddr));
   const [socket] = useState<NakamaSocket>(client.createSocket());
@@ -28,6 +28,7 @@ function App() {
   const [isMatched, setIsMatched] = useState<boolean>(false);
   const [userHP, setUserHP] = useState<number>(100);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [matchId, setMatchId] = useState<string>("");
   const [totalDamage, setTotalDamage] = useState<number>(0);
   const maxHP = 100;
 
@@ -40,11 +41,37 @@ function App() {
     if (userHP <= 0) {
       setCommand((prev) => [...prev, 'Your HP has dropped to 0. Game Over.']);
       setIsMatched(false);
-      sleep(5000).then(() => {
-        sendMatchState('victory');
-      });
+      showMessage('PanicMessage');
+      sendMatchState('victory');
+      setUserHP(100); // Reset HP
+      clearCommand()
+      pathChange('game@server:~$');
+      setTotalDamage(0); // Reset damage
     }
   }, [userHP]);
+
+  // HP 감소 로직 수정
+  useEffect(() => {
+    let hpTimer: NodeJS.Timeout;
+
+    if (isMatched) {
+      hpTimer = setInterval(() => {
+        const newDamage = calculateHPDecay(elapsedTime);
+        setUserHP(prev => {
+          const newHP = Math.max(0, prev - newDamage);
+          return Number(newHP.toFixed(1)); // 소수점 한자리까지만 표시
+        });
+        setElapsedTime(prev => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(hpTimer);
+      setElapsedTime(0);
+      setTotalDamage(0);
+      setUserHP(100);
+    }
+
+    return () => clearInterval(hpTimer);
+  }, [isMatched]);
 
   useEffect(() => {
     const connectToServer = async () => {
@@ -95,23 +122,6 @@ function App() {
     }
   }, [elapsedTime]);
   
-
-  useEffect(() => {
-    let hpInterval: NodeJS.Timeout;
-
-    if (isMatched) {
-      hpInterval = setInterval(() => {
-        setElapsedTime((prevTime) => prevTime + 1);
-      }, 1000);
-    } else {
-      clearInterval(hpInterval);
-      setElapsedTime(0);
-      setUserHP(100); // 매치 종료 시 HP 초기화
-    }
-
-    return () => clearInterval(hpInterval);
-  }, [isMatched]);
-
   const calculateHPDecay = (time: number): number => {
     const totalDuration = 900; // 15분 = 900초
     const k = 2; // 감소 속도 조절 지수
@@ -122,6 +132,12 @@ function App() {
     return decay;
   };
   
+  const resetGameState = () => {
+    setUserHP(100);
+    setTotalDamage(0);
+    setElapsedTime(0);
+    setIsMatched(false);
+  };
 
   const showMessage = async (path: string) => {
     try {
@@ -151,6 +167,13 @@ function App() {
       (e.target as HTMLInputElement).value = '';
     }
   }
+
+  const applyDamage = (damage: number) => {
+    setUserHP(prev => {
+      const newHP = Math.max(0, prev - damage);
+      return Number(newHP.toFixed(1));
+    });
+  };
 
   const pathChange = (path: string) => {
     setCurrentPath(path);
@@ -244,17 +267,19 @@ function App() {
             break;
           }
           
-          // 'answer' 명령어에서 정답일 경우
           if (VirusSystem.checkVirusName(args[0])) {
             setCommand(prev => [...prev, 'Correct! You have identified the virus.']);
-            sendMatchState('defeat'); // 상대방에게 패배 메시지 전송
-            setIsMatched(false);
+            sendMatchState('defeat');
+            showMessage('winMessage');
+            resetGameState();
           } else {
-            setTotalDamage(prevDamage => prevDamage + 30);
+            applyDamage(40);
             setCommand(prev => [...prev, 'Incorrect virus identification. Try again.']);
-            showMessage('panicMessage')
-          }
-          break;    
+            setIsDisabled(true);
+            showMessage('panicMessage');
+            setIsDisabled(false);
+          } 
+          break;
         case "clear":
           clearCommand();
           break;
@@ -295,86 +320,95 @@ function App() {
     socket.leaveMatch(matchId);
   }
 
+  // Match 데이터 처리 함수를 분리하고 에러 처리 강화
+const handleMatchData = (matchData: any) => {
+  console.log("Match data received:", matchData);
+  try {
+    const decoder = new TextDecoder();
+    const data = JSON.parse(decoder.decode(matchData.data));
+    console.log("Decoded match data:", data);
+
+    switch (data.gameState) {
+      case 'victory':
+        setCommand(prev => [...prev, 'Congratulations! You have won the game.']);
+        setIsDisabled(true);
+        showMessage('winMessage');
+        clearCommand();
+        setIsMatched(false);
+        pathChange('game@server:~$');
+        resetGameState();
+        break;
+      case 'defeat':
+        setCommand(prev => [...prev, 'You have been defeated.']);
+        setIsDisabled(true);
+        showMessage('panicMessage');
+        clearCommand();
+        setIsDisabled(false);
+        pathChange('game@server:~$');
+        resetGameState();
+        break;
+      default:
+        console.warn("Unknown game state received:", data.gameState);
+    }
+  } catch (error) {
+    console.error("Error processing match data:", error);
+  }
+};
+
   const startMatchmaking = async () => {
     if (!isConnected) {
-        console.error("Not connected to server");
-        return;
+      console.error("Not connected to server");
+      return;
     }
 
-    setIsDisabled(true); 
+    setIsDisabled(true);
     setCommand(prev => [...prev, 'Searching for opponent...']);
 
     const matchMakerQuery = '*';
     const minCount = 2;
     const maxCount = 2;
 
-    socket.addMatchmaker(matchMakerQuery, minCount, maxCount);
-
+    // 새로운 matchmaker listener 설정
     socket.onmatchmakermatched = async (matched) => {
-        try {
-            console.log("Matchmaker matched:", matched);
-            setIsMatched(true);
-            const matchedPlayers = matched.users.map(user => user.presence.user_id);
+      try {
+        console.log("Matchmaker matched:", matched);
+        setIsMatched(true);
+        const matchedPlayers = matched.users.map(user => user.presence.user_id);
 
-            const match = await socket.joinMatch(null, matched.token);
-            matchId = match.match_id;
-            console.log("Match joined:", matchId);
-            setUserHP(100);
+        const match = await socket.joinMatch(null, matched.token);
+        setMatchId(match.match_id);
+        console.log("Match joined:", matchId);
+        
+        // Match data listener 설정
+        socket.onmatchdata = handleMatchData;
 
-            setCommand(prev => [...prev, 'Match found! Starting program...']);
-            setCommand(prev => [...prev, `ssh game@veritas.${matchedPlayers[1]}.com`]);
-            clearCommand();
-            showMessage("welcomeGameMessage");
-            pathChange('game@veritas:~$');
+        setCommand(prev => [...prev, 'Match found! Starting program...']);
+        setCommand(prev => [...prev, `ssh game@veritas.${matchedPlayers[1]}.com`]);
+        clearCommand();
+        showMessage("welcomeGameMessage");
+        pathChange('game@veritas:~$');
 
-            // 시스템 초기화
-            initializeSystem();
-            
-            // 바이러스 로드
-            const virusResult = await VirusSystem.loadRandomVirus();
-            if (!virusResult.success) {
-                throw new Error(`Failed to load virus: ${virusResult.error}`);
-            }
-
-            if (!virusResult.virusType) {
-                throw new Error('No virus type returned');
-            }
-
-            console.log('Loaded virus type:', virusResult.virusType);
-            
-            // 바이러스 시뮬레이션
-            await simulateVirusBehavior();
-
-            setIsDisabled(false);
-
-            socket.onmatchdata = (matchData) => {
-              console.log("Match data received:", matchData);
-              const contentStr = new TextDecoder().decode(matchData.data);
-              console.log("Match data received:", contentStr);
-            
-              try {
-                const content = JSON.parse(contentStr);
-                if (content.gameState === 'victory') {
-                  setCommand(prev => [...prev, 'Congratulations! You have won the game.']);
-                  showMessage('victoryMessage');
-                  setIsMatched(false);
-                } else if (content.gameState === 'defeat') {
-                  setCommand(prev => [...prev, 'You have been defeated.']);
-                  showMessage('defeatMessage');
-                  setIsMatched(false);
-                }
-              } catch (e) {
-                console.error("Failed to parse match data:", e);
-              }
-            };
-            
-
-        } catch (error) {
-            console.error("Error in match setup:", error);
-            setCommand(prev => [...prev, 'Error initializing game. Please try again.']);
-            setIsDisabled(false);
+        // 시스템 초기화
+        initializeSystem();
+        
+        // 바이러스 로드 및 시뮬레이션
+        const virusResult = await VirusSystem.loadRandomVirus();
+        if (!virusResult.success || !virusResult.virusType) {
+          throw new Error('Failed to load virus');
         }
-    }
+
+        await simulateVirusBehavior();
+        setIsDisabled(false);
+
+      } catch (error) {
+        console.error("Error in match setup:", error);
+        setCommand(prev => [...prev, 'Error initializing game. Please try again.']);
+        setIsMatched(false);
+        setIsDisabled(false);
+      }
+    };
+
+    socket.addMatchmaker(matchMakerQuery, minCount, maxCount);
   };
   
   // 시스템 초기화 함수
